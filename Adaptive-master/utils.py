@@ -74,6 +74,7 @@ class CocoEvalLoader( datasets.ImageFolder ):
         self.transform = transform
         self.target_transform = target_transform
         self.loader = loader
+        self.samples = json.load( open( ann_path, 'r' ) )['images']
         self.imgs = json.load( open( ann_path, 'r' ) )['images']
 
 
@@ -107,7 +108,7 @@ def coco_eval( model, args, epoch ):
     
     # Validation images are required to be resized to 224x224 already
     transform = transforms.Compose([ 
-        transforms.Scale( (args.crop_size, args.crop_size) ),
+        transforms.Resize( (args.crop_size, args.crop_size) ),
         transforms.ToTensor(), 
         transforms.Normalize((0.485, 0.456, 0.406), 
                              (0.229, 0.224, 0.225))])
@@ -122,10 +123,12 @@ def coco_eval( model, args, epoch ):
         batch_size = args.eval_size, 
         shuffle = False, num_workers = args.num_workers,
         drop_last = False )  
+    #print(CocoEvalLoader( args.image_dir, args.caption_val_path, transform ))
+    #print(eval_data_loader)
     
     # Generated captions to be compared with GT
     results = []
-    print '---------------------Start evaluation on MS-COCO dataset-----------------------'
+    print ('---------------------Start evaluation on MS-COCO dataset-----------------------')
     for i, (images, image_ids, _ ) in enumerate( eval_data_loader ):
         
         images = to_var( images )
@@ -157,13 +160,15 @@ def coco_eval( model, args, epoch ):
         
         # Disp evaluation process
         if (i+1) % 10 == 0:
-            print '[%d/%d]'%( (i+1),len( eval_data_loader ) ) 
+            print ('[%d/%d]'%( (i+1),len( eval_data_loader ) ) )
+        if i == 10:
+            break
             
             
-    print '------------------------Caption Generated-------------------------------------'
+    print ('------------------------Caption Generated-------------------------------------')
             
     # Evaluate the results based on the COCO API
-    resFile = 'results/mixed-' + str( epoch ) + '.json'
+    resFile = 'coco/results/mixed-' + str( epoch ) + '.json'
     json.dump( results, open( resFile , 'w' ) )
     
     annFile = args.caption_val_path
@@ -176,10 +181,10 @@ def coco_eval( model, args, epoch ):
     
     # Get CIDEr score for validation evaluation
     cider = 0.
-    print '-----------Evaluation performance on MS-COCO validation dataset for Epoch %d----------'%( epoch )
+    print ('-----------Evaluation performance on MS-COCO validation dataset for Epoch %d----------'%( epoch ))
     for metric, score in cocoEval.eval.items():
         
-        print '%s: %.4f'%( metric, score )
+        print ('%s: %.4f'%( metric, score ))
         if metric == 'CIDEr':
             cider = score
             

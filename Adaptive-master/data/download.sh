@@ -1,10 +1,11 @@
-wget http://msvocds.blob.core.windows.net/annotations-1-0-3/captions_train-val2014.zip -P ./
-wget http://msvocds.blob.core.windows.net/coco2014/train2014.zip -P ./
-wget http://msvocds.blob.core.windows.net/coco2014/val2014.zip -P ./
+#!/bin/sh
+wget -c http://images.cocodataset.org/annotations/annotations_trainval2014.zip -P ./data
+wget -c http://images.cocodataset.org/zips/train2014.zip -P ./data
+wget -c http://images.cocodataset.org/zips/val2014.zip -P ./data
 
-unzip ./captions_train-val2014.zip -d ./
-rm ./captions_train-val2014.zip
-unzip ./train2014.zip -d ./
-rm ./train2014.zip 
-unzip ./val2014.zip -d ./
-rm ./val2014.zip 
+unzip ./data/captions_train-val2014.zip -d ./data
+rm ./data/captions_train-val2014.zip
+unzip ./data/train2014.zip -d ./data
+rm ./data/train2014.zip 
+unzip ./data/val2014.zip -d ./data
+rm ./data/val2014.zip 

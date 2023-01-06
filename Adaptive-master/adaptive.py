@@ -29,8 +29,8 @@ class AttentiveCNN( nn.Module ):
         
     def init_weights( self ):
         """Initialize the weights."""
-        init.kaiming_uniform( self.affine_a.weight, mode='fan_in' )
-        init.kaiming_uniform( self.affine_b.weight, mode='fan_in' )
+        init.kaiming_uniform_( self.affine_a.weight, mode='fan_in' )
+        init.kaiming_uniform_( self.affine_b.weight, mode='fan_in' )
         self.affine_a.bias.data.fill_( 0 )
         self.affine_b.bias.data.fill_( 0 )
         
@@ -71,10 +71,10 @@ class Atten( nn.Module ):
         
     def init_weights( self ):
         """Initialize the weights."""
-        init.xavier_uniform( self.affine_v.weight )
-        init.xavier_uniform( self.affine_g.weight )
-        init.xavier_uniform( self.affine_h.weight )
-        init.xavier_uniform( self.affine_s.weight )
+        init.xavier_uniform_( self.affine_v.weight )
+        init.xavier_uniform_( self.affine_g.weight )
+        init.xavier_uniform_( self.affine_h.weight )
+        init.xavier_uniform_( self.affine_s.weight )
         
     def forward( self, V, h_t, s_t ):
         '''
@@ -87,8 +87,10 @@ class Atten( nn.Module ):
                     + self.affine_g( self.dropout( h_t ) ).unsqueeze( 2 )
         
         # z_t = W_h * tanh( content_v )
-        z_t = self.affine_h( self.dropout( F.tanh( content_v ) ) ).squeeze( 3 )
-        alpha_t = F.softmax( z_t.view( -1, z_t.size( 2 ) ) ).view( z_t.size( 0 ), z_t.size( 1 ), -1 )
+        z_t = self.affine_h( self.dropout( torch.tanh( content_v ) ) ).squeeze( 3 )
+        #print(z_t.size( 1 ))
+        #print(F.softmax( z_t.view( -1, z_t.size( 2 ) ), dim= -1).size()) [1140, 49]
+        alpha_t = F.softmax( z_t.view( -1, z_t.size( 2 ) ), dim= -1).view( z_t.size( 0 ), z_t.size( 1 ), -1 )
         
         # Construct c_t: B x seq x hidden_size
         c_t = torch.bmm( alpha_t, V ).squeeze( 2 )
@@ -96,11 +98,11 @@ class Atten( nn.Module ):
         # W_s * s_t + W_g * h_t
         content_s = self.affine_s( self.dropout( s_t ) ) + self.affine_g( self.dropout( h_t ) )
         # w_t * tanh( content_s )
-        z_t_extended = self.affine_h( self.dropout( F.tanh( content_s ) ) )
+        z_t_extended = self.affine_h( self.dropout( torch.tanh( content_s ) ) )
         
         # Attention score between sentinel and image content
         extended = torch.cat( ( z_t, z_t_extended ), dim=2 )
-        alpha_hat_t = F.softmax( extended.view( -1, extended.size( 2 ) ) ).view( extended.size( 0 ), extended.size( 1 ), -1 )
+        alpha_hat_t = F.softmax( extended.view( -1, extended.size( 2 ) ), dim = -1 ).view( extended.size( 0 ), extended.size( 1 ), -1 )
         beta_t = alpha_hat_t[ :, :, -1 ]
         
         # c_hat_t = beta * s_t + ( 1 - beta ) * c_t
@@ -123,17 +125,17 @@ class Sentinel( nn.Module ):
         self.init_weights()
         
     def init_weights( self ):
-        init.xavier_uniform( self.affine_x.weight )
-        init.xavier_uniform( self.affine_h.weight )
+        init.xavier_uniform_( self.affine_x.weight )
+        init.xavier_uniform_( self.affine_h.weight )
         
     def forward( self, x_t, h_t_1, cell_t ):
         
         # g_t = sigmoid( W_x * x_t + W_h * h_(t-1) )        
         gate_t = self.affine_x( self.dropout( x_t ) ) + self.affine_h( self.dropout( h_t_1 ) )
-        gate_t = F.sigmoid( gate_t )
+        gate_t = torch.sigmoid( gate_t )
         
         # Sentinel embedding
-        s_t =  gate_t * F.tanh( cell_t )
+        s_t =  gate_t * torch.tanh( cell_t )
         
         return s_t
 
@@ -162,7 +164,7 @@ class AdaptiveBlock( nn.Module ):
         '''
         Initialize final classifier weights
         '''
-        init.kaiming_normal( self.mlp.weight, mode='fan_in' )
+        init.kaiming_normal_( self.mlp.weight, mode='fan_in' )
         self.mlp.bias.data.fill_( 0 )
         
         
@@ -243,11 +245,15 @@ class Decoder( nn.Module ):
             # Feed in x_t one at a time
             x_t = x[ :, time_step, : ]
             x_t = x_t.unsqueeze( 1 )
-            
-            h_t, states = self.LSTM( x_t, states )
+            #print(x_t.size())
+            h_t, states = self.LSTM( x_t, states ) # h_t:[60, 1, 512]
+            #print(h_t.squeeze( 1 ).size())
+            #print(hiddens.size())
+            #print(hiddens[ :, time_step, : ].size())
+            #print(states[1].size())
             
             # Save hidden and cell
-            hiddens[ :, time_step, : ] = h_t  # Batch_first
+            hiddens[ :, time_step, : ] = h_t.squeeze( 1 )  # Batch_first
             cells[ time_step, :, : ] = states[ 1 ]
         
         # cell: Batch x seq_len x hidden_size
