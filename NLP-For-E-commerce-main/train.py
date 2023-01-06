@@ -139,9 +139,12 @@ def main(args):
                 print ('Epoch [%d/%d], Step [%d/%d], CrossEntropy Loss: %.4f, Perplexity: %5.4f'%( epoch, 
                                                                                                  args.num_epochs, 
                                                                                                  i, total_step, 
-                                                                                                 loss.data[0],
-                                                                                                 np.exp( loss.data[0] ) ) )
+                                                                                                 loss.data.item(),
+                                                                                                 np.exp( loss.data.item() ) ) )
                 
+            if i == 10:
+                break
+
         # Save the Adaptive Attention model after each epoch
         torch.save( adaptive.state_dict(), 
                     os.path.join( args.model_path, 

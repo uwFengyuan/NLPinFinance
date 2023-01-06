@@ -1,10 +1,10 @@
 __author__ = 'tylin'
 
-from ptbtokenizer import PTBTokenizer
-from bleu import Bleu
+from tokenizer.ptbtokenizer import PTBTokenizer
+from bleu.bleu import Bleu
 from meteor import Meteor
-from rouge import Rouge
-from cider import Cider
+from rouge.rouge import Rouge
+from cider.cider import Cider
 
 
 # from .spice.spice import Spice

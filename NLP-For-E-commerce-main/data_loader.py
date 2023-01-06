@@ -7,7 +7,7 @@ import string
 import numpy as np
 from PIL import Image
 from build_vocab import Vocabulary
-from coco.pycocotools.coco import COCO
+from coco import COCO
 
 # mostly understood by wjy -----wjy
 class CocoDataset(data.Dataset):

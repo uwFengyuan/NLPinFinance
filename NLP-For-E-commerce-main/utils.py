@@ -8,8 +8,8 @@ import pickle
 from build_vocab import Vocabulary
 from torch.autograd import Variable 
 from torchvision import transforms, datasets
-from coco.pycocotools.coco import COCO
-from coco.pycocoevalcap.eval import COCOEvalCap
+from coco import COCO
+from eval import COCOEvalCap
 import matplotlib.pyplot as plt
 
 #understood by wjy -----wjy
@@ -75,6 +75,7 @@ class CocoEvalLoader( datasets.ImageFolder ):
         self.transform = transform
         self.target_transform = target_transform
         self.loader = loader
+        self.samples = json.load( open( ann_path, 'r' ) )['images']
         self.imgs = json.load( open( ann_path, 'r' ) )['images']
 
 # get the image as well as preprocessing -----wjy
@@ -108,7 +109,7 @@ def coco_eval( model, args, epoch ):
     
     # Validation images are required to be resized to 224x224 already
     transform = transforms.Compose([ 
-        transforms.Scale( (args.crop_size, args.crop_size) ),
+        transforms.Resize( (args.crop_size, args.crop_size) ),
         transforms.ToTensor(), 
         transforms.Normalize((0.485, 0.456, 0.406), 
                              (0.229, 0.224, 0.225))])
@@ -159,12 +160,15 @@ def coco_eval( model, args, epoch ):
         # Disp evaluation process
         if (i+1) % 10 == 0:
             print ('[%d/%d]'%( (i+1),len( eval_data_loader ) ) )
+
+        if i == 10:
+            break
             
             
     print ('------------------------Caption Generated-------------------------------------')
             
     # Evaluate the results based on the COCO API
-    resFile = 'results/mixed-' + str( epoch ) + '.json'
+    resFile = 'data/results/mixed-' + str( epoch ) + '.json'
     json.dump( results, open( resFile , 'w' ) )
     
     annFile = args.caption_val_path

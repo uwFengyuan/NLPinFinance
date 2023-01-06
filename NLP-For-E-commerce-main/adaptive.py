@@ -87,8 +87,8 @@ class Atten( nn.Module ):
                     + self.affine_g( self.dropout( h_t ) ).unsqueeze( 2 )
         
         # z_t = W_h * tanh( content_v )
-        z_t = self.affine_h( self.dropout( F.tanh( content_v ) ) ).squeeze( 3 )
-        alpha_t = F.softmax( z_t.view( -1, z_t.size( 2 ) ) ).view( z_t.size( 0 ), z_t.size( 1 ), -1 )
+        z_t = self.affine_h( self.dropout( torch.tanh( content_v ) ) ).squeeze( 3 )
+        alpha_t = F.softmax( z_t.view( -1, z_t.size( 2 ) ), dim = -1).view( z_t.size( 0 ), z_t.size( 1 ), -1 )
         
         # Construct c_t: B x seq x hidden_size
         c_t = torch.bmm( alpha_t, V ).squeeze( 2 )
@@ -96,11 +96,11 @@ class Atten( nn.Module ):
         # W_s * s_t + W_g * h_t
         content_s = self.affine_s( self.dropout( s_t ) ) + self.affine_g( self.dropout( h_t ) )
         # w_t * tanh( content_s )
-        z_t_extended = self.affine_h( self.dropout( F.tanh( content_s ) ) )
+        z_t_extended = self.affine_h( self.dropout( torch.tanh( content_s ) ) )
         
         # Attention score between sentinel and image content
         extended = torch.cat( ( z_t, z_t_extended ), dim=2 )
-        alpha_hat_t = F.softmax( extended.view( -1, extended.size( 2 ) ) ).view( extended.size( 0 ), extended.size( 1 ), -1 )
+        alpha_hat_t = F.softmax( extended.view( -1, extended.size( 2 ) ), dim = -1 ).view( extended.size( 0 ), extended.size( 1 ), -1 )
         beta_t = alpha_hat_t[ :, :, -1 ]
         
         # c_hat_t = beta * s_t + ( 1 - beta ) * c_t
@@ -130,10 +130,10 @@ class Sentinel( nn.Module ):
         
         # g_t = sigmoid( W_x * x_t + W_h * h_(t-1) )        
         gate_t = self.affine_x( self.dropout( x_t ) ) + self.affine_h( self.dropout( h_t_1 ) )
-        gate_t = F.sigmoid( gate_t )
+        gate_t = torch.sigmoid( gate_t )
         
         # Sentinel embedding
-        s_t =  gate_t * F.tanh( cell_t )
+        s_t =  gate_t * torch.tanh( cell_t )
         
         return s_t
 
@@ -248,7 +248,7 @@ class Decoder( nn.Module ):
             # print(h_t.size()):tensor([20,1,512])
             # print(states[1].size()):tensor([1,20,512])
             # Save hidden and cell
-            hiddens[ :, time_step, : ] = h_t  # Batch_first
+            hiddens[ :, time_step, : ] = h_t.squeeze( 1 )  # Batch_first
             cells[ time_step, :, : ] = states[ 1 ]
         
         # cell: Batch x seq_len x hidden_size

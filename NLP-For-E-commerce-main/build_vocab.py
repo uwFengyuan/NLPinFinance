@@ -2,10 +2,10 @@ import nltk
 import pickle
 import argparse
 from collections import Counter
-from coco.pycocotools.coco import COCO
+from coco import COCO
 
 # One of the changes.                                                                             -----wjy
-#nltk.download('punkt')
+# nltk.download('punkt')
 
 class Vocabulary(object):
     """Simple vocabulary wrapper."""
