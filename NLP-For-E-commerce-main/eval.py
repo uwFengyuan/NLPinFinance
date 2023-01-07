@@ -2,12 +2,10 @@ __author__ = 'tylin'
 
 from tokenizer.ptbtokenizer import PTBTokenizer
 from bleu.bleu import Bleu
-from meteor import Meteor
+from meteor.meteor import Meteor
 from rouge.rouge import Rouge
 from cider.cider import Cider
-
-
-# from .spice.spice import Spice
+from spice.spice import Spice
 
 
 class COCOEvalCap:
@@ -45,7 +43,7 @@ class COCOEvalCap:
             (Meteor(), "METEOR"),
             (Rouge(), "ROUGE_L"),
             (Cider(), "CIDEr"),
-            # (Spice(), "SPICE")
+            (Spice(), "SPICE")
         ]
 
         # =================================================
