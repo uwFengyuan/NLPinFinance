@@ -161,7 +161,7 @@ def coco_eval( model, args, epoch ):
         # Disp evaluation process
         if (i+1) % 10 == 0:
             print ('[%d/%d]'%( (i+1),len( eval_data_loader ) ) )
-        if i == 10:
+        if i == 500:
             break
             
             

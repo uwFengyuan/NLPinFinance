@@ -142,7 +142,7 @@ def main(args):
                                                                                                  i, total_step, 
                                                                                                  loss.data.item(),
                                                                                                  np.exp( loss.data.item() ) )  )
-            if i == 10:
+            if i == 1000:
                 break
                 
         # Save the Adaptive Attention model after each epoch
@@ -221,12 +221,12 @@ if __name__ == '__main__':
     
     # Training details
     parser.add_argument( '--pretrained', type=str, default='', help='start from checkpoint or scratch' )
-    parser.add_argument( '--num_epochs', type=int, default=3 ) #50
-    parser.add_argument( '--batch_size', type=int, default=6 ) # on cluster setup, 60 each x 4 for Huckle server
+    parser.add_argument( '--num_epochs', type=int, default=1 ) #50
+    parser.add_argument( '--batch_size', type=int, default=20 ) # on cluster setup, 60 each x 4 for Huckle server
     
     # For eval_size > 30, it will cause cuda OOM error on Huckleberry
-    parser.add_argument( '--eval_size', type=int, default=3 ) # on cluster setup, 30 each x 4
-    parser.add_argument( '--num_workers', type=int, default=0 )
+    parser.add_argument( '--eval_size', type=int, default=10 ) # on cluster setup, 30 each x 4
+    parser.add_argument( '--num_workers', type=int, default=4 )
     parser.add_argument( '--clip', type=float, default=0.1 )
     parser.add_argument( '--lr_decay', type=int, default=20, help='epoch at which to start lr decay' )
     parser.add_argument( '--learning_rate_decay_every', type=int, default=50,
