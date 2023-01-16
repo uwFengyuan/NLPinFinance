@@ -36,6 +36,7 @@ def main(args):
                              ( 0.229, 0.224, 0.225 ))])
     
     # Load vocabulary wrapper.
+    print('-'*20 + 'Load Vocabulary Wrapper' + '-'*20)
     with open( args.vocab_path, 'rb') as f:
         vocab = pickle.load( f )
     
@@ -176,19 +177,19 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument( '-f', default='self', help='To make it runnable in jupyter' )
-    parser.add_argument( '--model_path', type=str, default='./models',
+    parser.add_argument( '--model_path', type=str, default='/home/liufengyuan/NLPinFinance/NLP-For-E-commerce-main/data/models',
                          help='path for saving trained models')
     parser.add_argument('--crop_size', type=int, default=224 ,
                         help='size for randomly cropping images')
-    parser.add_argument('--vocab_path', type=str, default='./data/vocab.pkl',
+    parser.add_argument('--vocab_path', type=str, default='/data/liufengyuan/NLPinFinance/COCOdata/vocab.pkl',
                         help='path for vocabulary wrapper')
-    parser.add_argument('--image_dir', type=str, default='./data/resized' ,
+    parser.add_argument('--image_dir', type=str, default='/data/liufengyuan/NLPinFinance/COCOdata/resized' ,
                         help='directory for resized training images')
     parser.add_argument('--caption_path', type=str,
-                        default='./data/annotations/karpathy_split_train.json',
+                        default='/data/liufengyuan/NLPinFinance/COCOdata/annotations/karpathy_split_train.json',
                         help='path for train annotation json file')
     parser.add_argument('--caption_val_path', type=str,
-                        default='./data/annotations/karpathy_split_val.json',
+                        default='/data/liufengyuan/NLPinFinance/COCOdata/annotations/karpathy_split_val.json',
                         help='path for validation annotation json file')
     parser.add_argument('--log_step', type=int, default=10,
                         help='step size for printing log info')

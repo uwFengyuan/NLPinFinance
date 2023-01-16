@@ -11,8 +11,8 @@ num_val = 5000
 num_test = 5000
 
 # Add the 'data/' to keep the path right                                                                     -----wjy
-val = json.load( open(r'data/annotations/captions_val2014.json', 'r') )
-train = json.load( open(r'data/annotations/captions_train2014.json', 'r') )
+val = json.load( open('/data/liufengyuan/NLPinFinance/COCOdata/annotations/captions_val2014.json', 'r') )
+train = json.load( open('/data/liufengyuan/NLPinFinance/COCOdata/annotations/captions_train2014.json', 'r') )
 
 # Merge together
 imgs = val['images'] + train['images']
@@ -81,4 +81,4 @@ for subset in split:
         json_data[ subset ]['images'].append( img )
         json_data[ subset ]['annotations'].extend( anns )
         
-    json.dump( json_data[ subset ], open( r'data/annotations/karpathy_split_' + subset + '.json', 'w' ) )
+    json.dump( json_data[ subset ], open( '/data/liufengyuan/NLPinFinance/COCOdata/annotations/karpathy_split_' + subset + '.json', 'w' ) )

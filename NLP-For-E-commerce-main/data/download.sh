@@ -9,19 +9,21 @@
 #rm ./train2014.zip 
 #unzip ./val2014.zip
 #rm ./val2014.zip 
-wget -c http://images.cocodataset.org/annotations/annotations_trainval2014.zip -P ./data
-wget -c http://images.cocodataset.org/zips/train2014.zip -P ./data
-wget -c http://images.cocodataset.org/zips/val2014.zip -P ./data
+wget -c http://images.cocodataset.org/annotations/annotations_trainval2014.zip -P /data/liufengyuan/NLPinFinance/COCOdata
+wget -c http://images.cocodataset.org/zips/train2014.zip -P /data/liufengyuan/NLPinFinance/COCOdata
+wget -c http://images.cocodataset.org/zips/val2014.zip -P /data/liufengyuan/NLPinFinance/COCOdata
 
-unzip ./data/annotations_trainval2014.zip -d ./data
-rm ./data/annotations_trainval2014.zip
-unzip ./data/train2014.zip -d ./data
-rm ./data/train2014.zip 
-unzip ./data/val2014.zip -d ./data
-rm ./data/val2014.zip 
+unzip /data/liufengyuan/NLPinFinance/COCOdata/annotations_trainval2014.zip -d /data/liufengyuan/NLPinFinance/COCOdata
+#rm /data/liufengyuan/NLPinFinance/COCOdata/annotations_trainval2014.zip
+
+unzip /data/liufengyuan/NLPinFinance/COCOdata/train2014.zip -d /data/liufengyuan/NLPinFinance/COCOdata
+#rm /data/liufengyuan/NLPinFinance/COCOdata/train2014.zip 
+
+unzip /data/liufengyuan/NLPinFinance/COCOdata/val2014.zip -d /data/liufengyuan/NLPinFinance/COCOdata
+#rm /data/liufengyuan/NLPinFinance/COCOdata/val2014.zip 
 
 python KarpathySplit.py
 python build_vocab.py
-mkdir data/resized
+mkdir /data/liufengyuan/NLPinFinance/COCOdata/resized
 python resize.py
 python train.py

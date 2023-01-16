@@ -168,7 +168,7 @@ def coco_eval( model, args, epoch ):
     print ('------------------------Caption Generated-------------------------------------')
             
     # Evaluate the results based on the COCO API
-    resFile = 'data/results/mixed-' + str( epoch ) + '.json'
+    resFile = '/home/liufengyuan/NLPinFinance/NLP-For-E-commerce-main/data/results/mixed-' + str( epoch ) + '.json'
     json.dump( results, open( resFile , 'w' ) )
     
     annFile = args.caption_val_path

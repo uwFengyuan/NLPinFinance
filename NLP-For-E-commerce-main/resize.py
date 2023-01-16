@@ -45,9 +45,9 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image_dir', type=str, default='./data',
+    parser.add_argument('--image_dir', type=str, default='/data/liufengyuan/NLPinFinance/COCOdata',
                         help='directory for train images')
-    parser.add_argument('--output_dir', type=str, default='./data/resized',
+    parser.add_argument('--output_dir', type=str, default='/data/liufengyuan/NLPinFinance/COCOdata/resized',
                         help='directory for saving resized images')
     
     parser.add_argument('--image_size', type=int, default=256, # for cropping purpose
