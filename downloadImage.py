@@ -24,7 +24,7 @@ if not os.path.exists(r'/data/liufengyuan/NLPinFinance/Image'):
 
 filenames = os.listdir(r'/data/liufengyuan/NLPinFinance/Filtered Data')
 
-for filename in filenames:
+for filename in filenames[10:]:
 
     # 拿到文件名和种类
     #filename = re.findall('meta_(.*?).json.gz',filenames[iter])[0] + '.pkl'

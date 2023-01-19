@@ -25,7 +25,7 @@ def resize_images(image_dir, output_dir, size):
                    %(i, num_images, output_dir))
 
 def main(args):
-    splits = [ 'train2014', 'val2014' ]
+    splits = [ 'train', 'val' ]
     #years = ['2014']
     
     if not os.path.exists( args.output_dir ):
@@ -45,9 +45,9 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image_dir', type=str, default='/data/liufengyuan/NLPinFinance/COCOdata',
+    parser.add_argument('--image_dir', type=str, default='/data/liufengyuan/NLPinFinance/trainvalImage',
                         help='directory for train images')
-    parser.add_argument('--output_dir', type=str, default='/data/liufengyuan/NLPinFinance/COCOdata/resized',
+    parser.add_argument('--output_dir', type=str, default='/data/liufengyuan/NLPinFinance/Resized_Image',
                         help='directory for saving resized images')
     
     parser.add_argument('--image_size', type=int, default=256, # for cropping purpose

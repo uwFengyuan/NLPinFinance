@@ -2,7 +2,7 @@ import nltk
 import pickle
 import argparse
 from collections import Counter
-from coco import COCO
+from NLP_For_E_commerce_main.coco import COCO
 import pandas as pd
 
 # One of the changes.                                                                             -----wjy

@@ -6,8 +6,8 @@ import torch.nn as nn
 import numpy as np
 import os
 import pickle
-from utils import coco_eval, to_var
-from data_loader import get_loader 
+from NLP_For_E_commerce_main.utils import coco_eval, to_var
+from my_dataloader import get_loader 
 from adaptive import Encoder2Decoder
 from build_vocab import Vocabulary
 from torch.autograd import Variable 
@@ -41,7 +41,7 @@ def main(args):
         vocab = pickle.load( f )
     
     # Build training data loader
-    data_loader = get_loader( args.image_dir, args.caption_path, vocab, # resized, karpathy_split_train.json 建立一个json文件train
+    data_loader = get_loader( args.image_dir, args.caption_path, vocab, True, # resized, karpathy_split_train.json 建立一个json文件train
                               transform, args.batch_size,
                               shuffle=True, num_workers=args.num_workers ) 
 

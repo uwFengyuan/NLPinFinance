@@ -3,9 +3,14 @@ from urllib.request import urlopen
 import re
 import pickle
 import requests
+from NLP_For_E_commerce_main.build_vocab import Vocabulary
 
 # 下载图片
+with open( '/data/liufengyuan/NLPinFinance/COCOdata/vocab.pkl', 'rb') as f: # vocab.pkl
+    vocab = pickle.load( f )
+print(vocab)
 
+"""
 # 创建图片文件夹路径
 if not os.path.exists(r'Image'):
     os.mkdir(r'Image')
@@ -40,3 +45,4 @@ for iter in range(20):
                 
                 with open (img_path,'wb') as fp:
                     fp.write(img_data)
+"""
