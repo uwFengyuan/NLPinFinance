@@ -1,5 +1,6 @@
 import pickle
 import re
+import os
 import argparse
 import pandas as pd
 from nltk.corpus import words
@@ -37,35 +38,33 @@ def fine_sizing_words(keyList, wordlist):
     count = 0
     for key in keyList:
         count += 1
-        if count % 1000 == 0:
+        if count % 2000 == 0:
             print("[%d/%d] Tokenized the captions." %(count, len(wordlist)))
         if not key in words.words():
             del wordlist[key]
     return list(wordlist.keys()), wordlist
 
-def save_file(wordlist):
+def save_file(wordlist, csv_file_path):
     wordListFile = pd.DataFrame.from_dict(wordlist, orient='index')
     wordListFile = wordListFile.reset_index().rename(columns={'index': 'word', 0: 'count'})
     wordListFile = wordListFile.sort_values(by=['word'], ignore_index=True)
     wordListFile = wordListFile[~wordListFile['word'].isnull()]
-    wordListFile.to_csv('/home/liufengyuan/NLPinFinance/Experiment/WordList.csv', index=False)
+    wordListFile.to_csv(csv_file_path, index=False)
     return wordListFile
 
-def word_tokenize(file_path):
-    wordlist = {}
-    pat = '[a-zA-Z]+'
+def tokenize(text):
+    return re.findall('[a-zA-Z]+', text.lower())
 
+def get_wordlist(file_path):
+    wordlist = {}
     f_save = open(file_path, 'rb')
     file_read = pickle.load(f_save)
     f_save.close()
     for item in file_read:
         sentence = item['title']
-        output = re.findall(pat, sentence.lower())
-
+        output = tokenize(sentence)
         features = item['feature']
-        for fea in features:
-            output.extend(re.findall(pat, fea.lower()))
-
+        output.extend(tokenize(fea) for fea in features)
         for word in output:
             if word in wordlist.keys():
                 wordlist[word] += 1
@@ -76,17 +75,20 @@ def word_tokenize(file_path):
 # Tokenize the captions                            
 def build_vocab(file_path, threshold):
     """Build a simple vocabulary wrapper."""
+    csv_file_path = '/home/liufengyuan/NLPinFinance/WordList.csv'
 
-    keyList, wordlist = word_tokenize(file_path)
-    print(f"Raw number of words is {len(keyList)}")
+    if not os.path.exists(csv_file_path):
+        keyList, wordlist = get_wordlist(file_path)
+        print(f"Raw number of words is {len(keyList)}")
+        coarse_keyList, coarse_word_list = coarse_sizing_words(keyList, wordlist, threshold)
+        print(f"The number of words after coarse sizing is {len(coarse_keyList)}")
+        fine_keyList, fine_word_list = fine_sizing_words(coarse_keyList, coarse_word_list)
+        print(f"The number of words after fine sizing is {len(fine_keyList)}")
+        wordListFile = save_file(fine_word_list, csv_file_path)
+    else:
+        print('Tokenized wordlistFile has existed.')
+        wordListFile = pd.read_csv(csv_file_path)
 
-    coarse_keyList, coarse_word_list = coarse_sizing_words(keyList, wordlist, threshold)
-    print(f"The number of words after coarse sizing is {len(coarse_keyList)}")
-
-    fine_keyList, fine_word_list = fine_sizing_words(coarse_keyList, coarse_word_list)
-    print(f"The number of words after fine sizing is {len(fine_keyList)}")
-
-    wordListFile = save_file(fine_word_list)
     words = [row['word'] for _, row in wordListFile.iterrows()]
 
     # Creates a vocab wrapper and add some special tokens.
@@ -108,8 +110,6 @@ def main(args):
     vocab_path = args.vocab_path
     with open(vocab_path, 'wb') as f:
         pickle.dump(vocab, f)
-    
-    print(vocab)
     print("Total vocabulary size: %d" %len(vocab))
     print("Saved the vocabulary wrapper to '%s'" %vocab_path)
 

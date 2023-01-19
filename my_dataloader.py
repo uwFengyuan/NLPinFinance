@@ -9,6 +9,7 @@ import numpy as np
 from PIL import Image
 from NLP_For_E_commerce_main.build_vocab import Vocabulary
 from NLP_For_E_commerce_main.coco import COCO
+from my_build_vocab import tokenize
 
 # mostly understood by wjy -----wjy
 class AmazonDataset(data.Dataset):
@@ -52,7 +53,8 @@ class AmazonDataset(data.Dataset):
             image = self.transform( image )
 
         # Convert caption (string) to word ids.
-        tokens = str( title ).lower().translate( string.punctuation ).strip().split()
+        #tokens = str( title ).lower().translate( string.punctuation ).strip().split()
+        tokens = tokenize(str(title))
         title = []
         title.append(vocab('<start>'))
         title.extend([vocab(token) for token in tokens])

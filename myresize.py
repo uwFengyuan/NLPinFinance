@@ -1,10 +1,17 @@
 import argparse
 import os
 from PIL import Image
+import multiprocessing as mp
 
 def resize_image(image, size):
     """Resize an image to the given size."""
-    return image.resize(size, Image.ANTIALIAS)
+    return image.resize(size, Image.Resampling.LANCZOS)
+
+def transfer_image(image_dir, image, size, output_dir):
+    with open(os.path.join(image_dir, image), 'r+b') as f:
+        with Image.open(f) as img:
+            img = resize_image(img, size)
+            img.save(os.path.join(output_dir, image), img.format)
 
 def resize_images(image_dir, output_dir, size):
     """Resize the images in 'image_dir' and save into 'output_dir'."""
@@ -13,15 +20,15 @@ def resize_images(image_dir, output_dir, size):
 
     images = os.listdir(image_dir)
     num_images = len(images)
+
+    pool = mp.Pool(48)
     for i, image in enumerate(images):
-        with open(os.path.join(image_dir, image), 'r+b') as f:
-            with Image.open(f) as img:
-                img = resize_image(img, size)
-                img.save(os.path.join(output_dir, image), img.format)
-                
+        pool.apply_async(transfer_image, args = (image_dir, image, size, output_dir))
         if i % 1000 == 0:
             print ("[%d/%d] Resized the images and saved into '%s'."
                    %(i, num_images, output_dir))
+    pool.close()
+    pool.join()
 
 def main(args):
     splits = [ 'train', 'val' , 'test']

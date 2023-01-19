@@ -64,8 +64,6 @@ def main(args):
     vocab_path = args.vocab_path
     with open(vocab_path, 'wb') as f:
         pickle.dump(vocab, f)
-    
-    print(vocab)
     print("Total vocabulary size: %d" %len(vocab))
     print("Saved the vocabulary wrapper to '%s'" %vocab_path)
 
