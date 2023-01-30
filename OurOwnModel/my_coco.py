@@ -43,7 +43,7 @@ class COCO:
     def getImgIds(self):
 
         ids = []
-        for i in range(self.dataset):
+        for i in range(len(self.dataset)):
             ids.append(self.dataset[i]['asin'])
         return ids
 

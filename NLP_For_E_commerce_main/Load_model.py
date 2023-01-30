@@ -37,7 +37,7 @@ def main(args):
                              ( 0.229, 0.224, 0.225 ))])
     
     # Load vocabulary wrapper.
-    print('-'*20 + 'Load Vocabulary Wrapper' + '-'*20)
+    # print('-'*20 + 'Load Vocabulary Wrapper' + '-'*20)
     with open( args.vocab_path, 'rb') as f: # vocab.pkl
         vocab = pickle.load( f )
     
@@ -49,140 +49,39 @@ def main(args):
     # Load pretrained model or build from scratch
     adaptive = Encoder2Decoder( args.embed_size, len(vocab), args.hidden_size ) # Adaptive: (256, len(vocab), 512)
     
-    if args.pretrained:
         
-        adaptive.load_state_dict( torch.load( args.pretrained ) )
-        # Get starting epoch #, note that model is named as '...your path to model/algoname-epoch#.pkl'
-        # A little messy here.
-        # start_epoch = int( args.pretrained.split('/')[-1].split('-')[1].split('.')[0] ) + 1
-        start_epoch = 5
-        
-    else:
-        start_epoch = 1
-    
-    # Constructing CNN parameters for optimization, only fine-tuning higher layers
-    cnn_subs = list( adaptive.encoder.resnet_conv.children() )[ args.fine_tune_start_layer: ]
-    cnn_params = [ list( sub_module.parameters() ) for sub_module in cnn_subs ]
-    cnn_params = [ item for sublist in cnn_params for item in sublist ]
-    
-    cnn_optimizer = torch.optim.Adam( cnn_params, lr=args.learning_rate_cnn, 
-                                      betas=( args.alpha, args.beta ) )
-    
-    # Other parameter optimization
-    params = list( adaptive.encoder.affine_a.parameters() ) + list( adaptive.encoder.affine_b.parameters() ) \
-                + list( adaptive.decoder.parameters() )
+    adaptive.load_state_dict( torch.load( '/home/liufengyuan/NLPinFinance/NLP_For_E_commerce_main/data/models/adaptive-Automotive(description)1.pkl' ) )
+    # Get starting epoch #, note that model is named as '...your path to model/algoname-epoch#.pkl'
+    # A little messy here.
 
-    # Will decay later    
-    learning_rate = args.learning_rate
-    
-    # Language Modeling Loss
-    LMcriterion = nn.CrossEntropyLoss()
-    
-    # Change to GPU mode if available
-    if torch.cuda.is_available():
-        adaptive.cuda()
-        LMcriterion.cuda()
-    
-    # Train the Models
-    total_step = len( data_loader )
-    
+        
+    # Evaluation on validation set 
     cider_scores = []
     best_cider = 0.0
-    best_epoch = 0
+    best_epoch = 0       
+    cider = coco_eval( adaptive, args, 1 )
+    cider_scores.append( cider )        
     
-    # Start Training 
-    for epoch in range( start_epoch, args.num_epochs + 1 ):
-
-        # Start Learning Rate Decay
-        if epoch > args.lr_decay:
-                
-            frac = float( epoch - args.lr_decay ) / args.learning_rate_decay_every
-            decay_factor = math.pow( 0.5, frac )
-
-            # Decay the learning rate
-            learning_rate = args.learning_rate * decay_factor
+    if cider > best_cider:
+        best_cider = cider
+        best_epoch = 1
+    
+    if len( cider_scores ) > 5:
         
-        print ('Learning Rate for Epoch %d: %.6f'%( epoch, learning_rate ))
-
-        optimizer = torch.optim.Adam( params, lr=learning_rate, betas=( args.alpha, args.beta ) )
-
-        # Language Modeling Training
-        print ('------------------Training for Epoch %d----------------'%( epoch ))
-        for i, (images, captions, lengths, _, _ ) in enumerate( data_loader ):
-
-            # Set mini-batch dataset
-            images = to_var( images )
-            captions = to_var( captions )
-            lengths = [ cap_len - 1  for cap_len in lengths ]
-            targets = pack_padded_sequence( captions[:,1:], lengths, batch_first=True )[0]
-
-            # Forward, Backward and Optimize
-            adaptive.train()
-            adaptive.zero_grad()
-
-            start = time.time()
-            packed_scores = adaptive( images, captions, lengths )
-            end = time.time()
-            if i % 10 == 0:
-                print(f'第{i+1}个batch耗时{end - start}s')
-            if(end - start) > 5:
-                print('出现了一个老鼠屎，跳过')
-                continue
-            # Compute loss and backprop
-            loss = LMcriterion( packed_scores[0], targets )
-            loss.backward()
-            
-            # Gradient clipping for gradient exploding problem in LSTM
-            for p in adaptive.decoder.LSTM.parameters():
-                p.data.clamp_( -args.clip, args.clip )
-            
-            optimizer.step()
-            
-            # Start CNN fine-tuning
-            if epoch > args.cnn_epoch:
-                cnn_optimizer.step()
-
-            # Print log info
-            if i % args.log_step == 0:
-                print ('Epoch [%d/%d], Step [%d/%d], CrossEntropy Loss: %.4f, Perplexity: %5.4f'%( epoch, 
-                                                                                                 args.num_epochs, 
-                                                                                                 i, total_step, 
-                                                                                                 loss.data.item(),
-                                                                                                 np.exp( loss.data.item() ) ) )
-                
-            if i == 400:
-                break
-
-        # Save the Adaptive Attention model after each epoch
-        torch.save( adaptive.state_dict(), 
-                    os.path.join( args.model_path, 
-                    'adaptive-Sports_and_Outdoors(description)%d.pkl'%( epoch ) ) )        # 改成每个种类 
-      
+        last_6 = cider_scores[-6:]
+        last_6_max = max( last_6 )
         
-        # Evaluation on validation set        
-        cider = coco_eval( adaptive, args, epoch )
-        cider_scores.append( cider )        
-        
-        if cider > best_cider:
-            best_cider = cider
-            best_epoch = epoch
-       
-        if len( cider_scores ) > 5:
+        # Test if there is improvement, if not do early stopping
+        if last_6_max != best_cider:
             
-            last_6 = cider_scores[-6:]
-            last_6_max = max( last_6 )
+            print ('No improvement with CIDEr in the last 6 epochs...Early stopping triggered.')
+            print ('Model of best epoch #: %d with CIDEr score %.2f'%( best_epoch, best_cider ))
             
-            # Test if there is improvement, if not do early stopping
-            if last_6_max != best_cider:
-                
-                print ('No improvement with CIDEr in the last 6 epochs...Early stopping triggered.')
-                print ('Model of best epoch #: %d with CIDEr score %.2f'%( best_epoch, best_cider ))
-                break
             
             
 if __name__ == '__main__':
     
-    data_source = 'Five_Categories_Data/Sports_and_Outdoors'
+    data_source = 'Five_Categories_Data/Automotive'
     image_source = 'LFYdata'
     parser = argparse.ArgumentParser()
     parser.add_argument( '-f', default='self', help='To make it runnable in jupyter' )
@@ -230,7 +129,7 @@ if __name__ == '__main__':
                          help='dimension of lstm hidden states' )
     
     # Training details
-    parser.add_argument( '--pretrained', type=str, default='/home/liufengyuan/NLPinFinance/NLP_For_E_commerce_main/data/models/adaptive-Sports_and_Outdoors(description)4.pkl' )
+    parser.add_argument( '--pretrained', type=str, default='' )
     parser.add_argument( '--num_epochs', type=int, default=5 )
     parser.add_argument( '--batch_size', type=int, default=30) # on cluster setup, 60 each x 4 for Huckle server
     

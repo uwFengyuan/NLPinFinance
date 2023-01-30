@@ -7,9 +7,8 @@ import pickle
 import string
 import numpy as np
 from PIL import Image
-from NLP_For_E_commerce_main.build_vocab import Vocabulary
-from NLP_For_E_commerce_main.coco import COCO
-from OurOwnModel.my_build_vocab import tokenize
+from my_build_vocab import Vocabulary, tokenize
+from my_coco import COCO
 
 # mostly understood by wjy -----wjy
 class AmazonDataset(data.Dataset):
@@ -42,9 +41,9 @@ class AmazonDataset(data.Dataset):
         id = one_data['asin']
         
         if self.train == True:
-            path_true = self.root + '/Resized_Image/train/' + id + '.jpg'
+            path_true = self.root + '/train/' + id + '.jpg'
         else:
-            path_true = self.root + '/Resized_Image/val/' + id + '.jpg'
+            path_true = self.root + '/val/' + id + '.jpg'
 
         #print(self.root) 
         #print(path)

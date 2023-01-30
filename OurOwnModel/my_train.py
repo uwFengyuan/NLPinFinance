@@ -1,15 +1,16 @@
 import math
 import json
+import time
 import argparse
 import torch
 import torch.nn as nn
 import numpy as np
 import os
 import pickle
-from OurOwnModel.my_utils import coco_eval, to_var
-from OurOwnModel.my_dataloader import get_loader 
-from NLP_For_E_commerce_main.adaptive import Encoder2Decoder
-from OurOwnModel.my_build_vocab import Vocabulary
+from my_utils import coco_eval, to_var
+from my_dataloader import get_loader 
+from adaptive import Encoder2Decoder
+from my_build_vocab import Vocabulary
 from torch.autograd import Variable 
 from torchvision import transforms
 from torch.nn.utils.rnn import pack_padded_sequence
@@ -40,6 +41,7 @@ def main(args):
     with open( args.vocab_path, 'rb') as f: # vocab.pkl
         vocab = pickle.load( f )
     
+    print('-'*24 + 'Finish Loading Vocabulary Wrapper' + '-'*24)
     # Build training data loader
     data_loader = get_loader( args.image_dir, args.caption_path, vocab, True, # resized, karpathy_split_train.json 建立一个json文件train
                               transform, args.batch_size,
@@ -88,6 +90,7 @@ def main(args):
     best_cider = 0.0
     best_epoch = 0
     
+    Laoshushi = []
     # Start Training 
     for epoch in range( start_epoch, args.num_epochs + 1 ):
 
@@ -106,28 +109,52 @@ def main(args):
 
         # Language Modeling Training
         print ('------------------Training for Epoch %d----------------'%( epoch ))
-        for i, (images, captions, lengths, _) in enumerate( data_loader ):
-
+        for i, (images, captions, lengths, img_ids) in enumerate( data_loader ):
+            #if i == 27:
+            #    continue
+            #print(i)
             # Set mini-batch dataset
             images = to_var( images )
             captions = to_var( captions )
             lengths = [ cap_len - 1  for cap_len in lengths ]
+            #print(images)
+            #print(captions)
+            #print(lengths)
             targets = pack_padded_sequence( captions[:,1:], lengths, batch_first=True )[0]
+            #print('get targets')
 
             # Forward, Backward and Optimize
             adaptive.train()
             adaptive.zero_grad()
-
+            #print('Ready to adapt')
+            #if i == 548:
+            #    print(images)
+            #    print(captions)
+            #    print(lengths)
+            #    print(img_ids)
+            start = time.time()
             packed_scores = adaptive( images, captions, lengths )
-
+            end = time.time()
+            print(end - start)
+            if(end - start) > 3:
+                Laoshushi.append(img_ids)
+                continue
+            #if i == 27:
+            #    print(packed_scores)
+            #    print(packed_scores[0])
+            #    print(targets)
+            #print('get the packed_score')
             # Compute loss and backprop
             loss = LMcriterion( packed_scores[0], targets )
+            #if i == 27:
+            #    print(loss)
+            #print('get loss')
             loss.backward()
             
             # Gradient clipping for gradient exploding problem in LSTM
             for p in adaptive.decoder.LSTM.parameters():
                 p.data.clamp_( -args.clip, args.clip )
-            
+            #print('optimizer')
             optimizer.step()
             
             # Start CNN fine-tuning
@@ -142,14 +169,14 @@ def main(args):
                                                                                                  loss.data.item(),
                                                                                                  np.exp( loss.data.item() ) ) )
                 
-            if i == 10:
+            if i == 20:
                 break
-
+        print(Laoshushi)
         # Save the Adaptive Attention model after each epoch
         torch.save( adaptive.state_dict(), 
                     os.path.join( args.model_path, 
                     'adaptive-%d.pkl'%( epoch ) ) )          
-      
+        
         
         # Evaluation on validation set        
         cider = coco_eval( adaptive, args, epoch )
@@ -176,11 +203,11 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument( '-f', default='self', help='To make it runnable in jupyter' )
-    parser.add_argument( '--model_path', type=str, default='/home/liufengyuan/NLPinFinance/Experiment/data/models',
+    parser.add_argument( '--model_path', type=str, default='/home/liufengyuan/OurOwnModel/data/models',
                          help='path for saving trained models')
     parser.add_argument('--crop_size', type=int, default=224 ,
                         help='size for randomly cropping images')
-    parser.add_argument('--vocab_path', type=str, default='/home/liufengyuan/NLPinFinance/Experiment/my_vocab.pkl',
+    parser.add_argument('--vocab_path', type=str, default='/data/liufengyuan/NLPinFinance/my_vocab.pkl',
                         help='path for vocabulary wrapper')
     parser.add_argument('--image_dir', type=str, default='/data/liufengyuan/NLPinFinance/Resized_Image' ,
                         help='directory for resized training images')

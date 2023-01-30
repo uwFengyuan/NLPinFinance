@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 import itertools
 
+content = 'description'
+
 # path to the stanford corenlp jar
 STANFORD_CORENLP_3_4_1_JAR = 'stanford-corenlp-3.4.1.jar'
 
@@ -36,7 +38,8 @@ class PTBTokenizer:
         # ======================================================
         final_tokenized_captions_for_image = {}
         image_id = [k for k, v in captions_for_image.items() for _ in range(len(v))]
-        sentences = '\n'.join([c['caption'].replace('\n', ' ') for k, v in captions_for_image.items() for c in v])
+        sentences = '\n'.join([c[content].replace('\n', ' ') for k, v in captions_for_image.items() for c in v])
+        #print(sentences)
 
         # ======================================================
         # save sentences to temporary file
@@ -57,6 +60,8 @@ class PTBTokenizer:
             p_tokenizer = subprocess.Popen(cmd, cwd=path_to_jar_dirname, \
                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         token_lines = p_tokenizer.communicate(input=sentences.rstrip())[0]
+        #print('token_lines: ')
+        #print(token_lines)
         token_lines = token_lines.decode()
         lines = token_lines.split('\n')
         # remove temp file

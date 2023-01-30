@@ -1,10 +1,12 @@
 __author__ = 'tylin'
 
-from NLP_For_E_commerce_main.tokenizer.ptbtokenizer import PTBTokenizer
-from NLP_For_E_commerce_main.bleu.bleu import Bleu
-from NLP_For_E_commerce_main.meteor.meteor import Meteor
-from NLP_For_E_commerce_main.rouge.rouge import Rouge
-from NLP_For_E_commerce_main.cider.cider import Cider
+from tokenizer.title_tokenizer import title_tokenize
+from tokenizer.my_ptbtokenizer import PTBTokenizer
+#from my_build_vocab import tokenize
+from bleu.bleu import Bleu
+from meteor.meteor import Meteor
+from rouge.rouge import Rouge
+from cider.cider import Cider
 
 
 # from .spice.spice import Spice
@@ -37,9 +39,30 @@ class COCOEvalCap:
         # Set up scorers
         # =================================================
         print('tokenization...')
-        tokenizer = PTBTokenizer()
-        gts = tokenizer.tokenize(gts)
-        res = tokenizer.tokenize(res)
+        GTS = {}
+        RES = {}
+        for asin, title in gts.items():
+            token_list = title_tokenize(title)
+            final_title = ' '.join(token_list)
+            GTS[asin] = final_title
+        #gts_copy = {}
+        #for key, value in gts.items():
+        #    gts_copy[key] = tokenize(value)
+        #gts = gts_copy
+        #print(gts)
+        #print(GTS)
+        for asin, title in res.items():
+            token_list = title_tokenize(title)
+            final_title = ' '.join(token_list)
+            RES[asin] = final_title
+        # gts = tokenizer.tokenize(gts)
+        #print(res)
+        #print(RES)
+
+        #res_copy = {}
+        #for key, value in res.items():
+        #    res_copy[key] = tokenize(value)
+        #res = res_copy
 
         # =================================================
         # Set up scorers
@@ -58,15 +81,15 @@ class COCOEvalCap:
         # =================================================
         for scorer, method in scorers:
             print('computing %s score...' % (scorer.method()))
-            score, scores = scorer.compute_score(gts, res)
+            score, scores = scorer.compute_score(GTS, RES)
             if type(method) == list:
                 for sc, scs, m in zip(score, scores, method):
                     self.setEval(sc, m)
-                    self.setImgToEvalImgs(scs, gts.keys(), m)
+                    self.setImgToEvalImgs(scs, GTS.keys(), m)
                     print("%s: %0.3f" % (m, sc))
             else:
                 self.setEval(score, method)
-                self.setImgToEvalImgs(scores, gts.keys(), method)
+                self.setImgToEvalImgs(scores, GTS.keys(), method)
                 print("%s: %0.3f" % (method, score))
         self.setEvalImgs()
 

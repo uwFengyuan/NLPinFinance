@@ -2,8 +2,10 @@ import nltk
 import pickle
 import argparse
 from collections import Counter
-from NLP_For_E_commerce_main.coco import COCO
+from coco import COCO
 import pandas as pd
+
+content = 'description'
 
 # One of the changes.                                                                             -----wjy
 # nltk.download('punkt')
@@ -36,7 +38,7 @@ def build_vocab(json, threshold):
     counter = Counter()
     ids = coco.anns.keys()
     for i, id in enumerate(ids):
-        caption = str(coco.anns[id]['caption'])
+        caption = str(coco.anns[id][content])
         tokens = nltk.tokenize.word_tokenize(caption.lower())
         counter.update(tokens)
 
@@ -69,11 +71,12 @@ def main(args):
 
 
 if __name__ == '__main__':
+    data_source = 'Five_Categories_Data/Sports_and_Outdoors'
     parser = argparse.ArgumentParser()
     parser.add_argument('--caption_path', type=str, 
-                        default='/data/liufengyuan/NLPinFinance/COCOdata/annotations/karpathy_split_train.json', 
+                        default='/data/liufengyuan/NLPinFinance/' + data_source + '/annotations/karpathy_split_train.json', 
                         help='path for train annotation file')
-    parser.add_argument('--vocab_path', type=str, default='/data/liufengyuan/NLPinFinance/COCOdata/vocab.pkl', 
+    parser.add_argument('--vocab_path', type=str, default='/data/liufengyuan/NLPinFinance/' + data_source + '/vocab.pkl', 
                         help='path for saving vocabulary wrapper')
     parser.add_argument('--threshold', type=int, default=5, 
                         help='minimum word count threshold')

@@ -2,6 +2,7 @@ import pickle
 import re
 import os
 import argparse
+import json
 import pandas as pd
 from nltk.corpus import words
 
@@ -57,8 +58,8 @@ def tokenize(text):
 
 def get_wordlist(file_path):
     wordlist = {}
-    f_save = open(file_path, 'rb')
-    file_read = pickle.load(f_save)
+    f_save = open(file_path, 'r')
+    file_read = json.load(f_save)
     f_save.close()
     for item in file_read:
         sentence = item['title']
@@ -75,7 +76,7 @@ def get_wordlist(file_path):
 # Tokenize the captions                            
 def build_vocab(file_path, threshold):
     """Build a simple vocabulary wrapper."""
-    csv_file_path = '/home/liufengyuan/NLPinFinance/WordList.csv'
+    csv_file_path = '/home/liufengyuan/NLPinFinance/WordList_Title_wjy.csv'
 
     if not os.path.exists(csv_file_path):
         keyList, wordlist = get_wordlist(file_path)
@@ -119,7 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('--caption_path', type=str, 
                         default='/data/liufengyuan/NLPinFinance/Combined_Data.json', 
                         help='path for train annotation file')
-    parser.add_argument('--vocab_path', type=str, default='/home/liufengyuan/NLPinFinance/Experiment/my_vocab.pkl', 
+    parser.add_argument('--vocab_path', type=str, default='/data/liufengyuan/NLPinFinance/my_vocab.pkl', 
                         help='path for saving vocabulary wrapper')
     parser.add_argument('--threshold', type=int, default=30, 
                         help='minimum word count threshold')

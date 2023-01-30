@@ -12,6 +12,9 @@ from coco import COCO
 from eval import COCOEvalCap
 import matplotlib.pyplot as plt
 
+
+content = 'description'
+
 #understood by wjy -----wjy
 # Variable wrapper
 def to_var(x, volatile=False):
@@ -85,11 +88,11 @@ class CocoEvalLoader( datasets.ImageFolder ):
         img_id = self.imgs[ index ]['id']
         
         # Filename for the image
-        if 'val' in filename.lower():
-            path = os.path.join( self.root, 'val2014' , filename )
-        else:
-            path = os.path.join( self.root, 'train2014', filename )
-
+        #if 'val' in filename.lower():
+        #    path = os.path.join( self.root, 'val2014' , filename )
+        #else:
+        #    path = os.path.join( self.root, 'train2014', filename )
+        path = os.path.join( self.root, 'LFY_2014', filename )
         img = self.loader( path )
         if self.transform is not None:
             img = self.transform( img )
@@ -154,21 +157,21 @@ def coco_eval( model, args, epoch ):
             
             sentence = ' '.join( sampled_caption )
             
-            temp = { 'image_id': int( image_ids[ image_idx ] ), 'caption': sentence }
+            temp = { 'image_id': image_ids[ image_idx ] , content: sentence }
             results.append( temp )
         
         # Disp evaluation process
         if (i+1) % 10 == 0:
             print ('[%d/%d]'%( (i+1),len( eval_data_loader ) ) )
 
-        #if i == 5:
-        #    break
+        # if i == 200:
+            # break
             
             
     print ('------------------------Caption Generated-------------------------------------')
             
     # Evaluate the results based on the COCO API
-    resFile = '/home/liufengyuan/NLPinFinance/NLP-For-E-commerce-main/data/results/mixed-' + str( epoch ) + '.json'
+    resFile = '/home/liufengyuan/NLPinFinance/NLP_For_E_commerce_main/data/results/mixed-' + str( epoch ) + '.json'
     json.dump( results, open( resFile , 'w' ) )
     
     annFile = args.caption_val_path

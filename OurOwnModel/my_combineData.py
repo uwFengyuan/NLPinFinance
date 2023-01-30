@@ -2,7 +2,7 @@ import json
 import os
 import pickle
 
-global_path = '/data/liufengyuan/NLPinFinance/Filtered Data/'
+global_path = '/data/liufengyuan/NLPinFinance/Unziped_Filtered_Data/'
 filenames = os.listdir(global_path)
 total_data = []
 for file in filenames:

@@ -39,7 +39,7 @@ for i in range(math.ceil(total_data_length/each_step)):
     for item in total_data[start:end]:
         count += 1
         if count % 2000 == 0:
-            print("[%d/%d] Tokenized the captions." %(count, len(total_data)))
+            print("[%d/%d] Tokenized the captions." %(count, len(each_step)))
         pool.apply_async(select_data, args = (item, new_data_val, new_data_test, new_data_train))
     print('Close pool')
     pool.close()

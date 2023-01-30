@@ -5,11 +5,11 @@ import numpy as np
 import os
 import glob
 import pickle
-from OurOwnModel.my_build_vocab import Vocabulary
+from my_build_vocab import Vocabulary
 from torch.autograd import Variable 
 from torchvision import transforms, datasets
-from OurOwnModel.my_coco import COCO
-from OurOwnModel.my_eval import COCOEvalCap
+from my_coco import COCO
+from my_eval import COCOEvalCap
 import matplotlib.pyplot as plt
 
 #understood by wjy -----wjy
@@ -134,7 +134,8 @@ def coco_eval( model, args, epoch ):
         
         images = to_var( images )
         generated_captions, _, _ = model.sampler( images )
-        
+        with open('/home/liufengyuan/NLPinFinance/OurOwnModel/generated_captions.txt', 'w') as f:
+            print('generated_captions:',generated_captions , file=f)
         if torch.cuda.is_available():
             captions = generated_captions.cpu().data.numpy()
         else:
@@ -156,21 +157,22 @@ def coco_eval( model, args, epoch ):
             
             sentence = ' '.join( sampled_caption )
             
-            temp = { 'asin': int( image_ids[ image_idx ] ), 'title': sentence }
+            temp = { 'asin': image_ids[ image_idx ] , 'title': sentence }
             results.append( temp )
+        # print(results)
         
         # Disp evaluation process
         if (i+1) % 10 == 0:
             print ('[%d/%d]'%( (i+1),len( eval_data_loader ) ) )
 
-        if i == 10:
+        if i == 100:
             break
             
             
     print ('------------------------Caption Generated-------------------------------------')
             
     # Evaluate the results based on the COCO API
-    resFile = 'data/results/mixed-' + str( epoch ) + '.json'
+    resFile = '/home/liufengyuan/NLPinFinance/OurOwnModel/data/results/mixed-' + str( epoch ) + '.json'
     json.dump( results, open( resFile , 'w' ) )
     
     annFile = args.caption_val_path

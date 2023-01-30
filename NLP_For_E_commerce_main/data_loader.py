@@ -9,6 +9,8 @@ from PIL import Image
 from build_vocab import Vocabulary
 from coco import COCO
 
+content = 'description'
+
 # mostly understood by wjy -----wjy
 class CocoDataset(data.Dataset):
     """COCO Custom Dataset compatible with torch.utils.data.DataLoader."""
@@ -33,17 +35,21 @@ class CocoDataset(data.Dataset):
         coco = self.coco
         vocab = self.vocab
         ann_id = self.ids[index]
-        caption = coco.anns[ann_id]['caption']
+        caption = coco.anns[ann_id][content]
         img_id = coco.anns[ann_id]['image_id']
+        #print(img_id)
+        #print(coco.loadImgs(img_id))
         filename = coco.loadImgs(img_id)[0]['file_name']
 
-        if 'val' in filename.lower():
-            path = '/val2014/' + filename
-        else:
-            path = '/train2014/' + filename
+        #if 'train' in filename.lower():
+        #    path = '/train2014/' + filename
+        #else:
+        #    path = '/val2014/' + filename
+        path = '/LFY_2014/' + filename
         #print(self.root)
         #print(path)
-        path_true = self.root+path
+        path_true = self.root + path
+        #if os.path.exists(csv_file_path)
         image = Image.open( path_true ).convert('RGB')
         if self.transform is not None:
             image = self.transform( image )
@@ -94,7 +100,8 @@ def collate_fn(data):
     targets = torch.zeros(len(captions), max(lengths)).long()
     for i, cap in enumerate(captions):
         end = lengths[i]
-        targets[i, :end] = cap[:end]        
+        targets[i, :end] = cap[:end]     
+    # print(max(lengths))
     return images, targets, lengths, img_ids, filenames
 
 

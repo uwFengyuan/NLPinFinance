@@ -26,7 +26,7 @@ for name in filenames:
     print(f'{category}中满足条件的共{len(data[category])}条,占比{round(100*len(data[category])/count,2)}%')
     total += len(data[category])
     # 字典保存
-    path = os.path.join(r'/data/liufengyuan/NLPinFinance/Filtered Data',category)
+    path = os.path.join(r'/data/liufengyuan/NLPinFinance/Unziped_Filtered_Data',category)
     f_save = open(path + '.pkl', 'wb')
     pickle.dump(data[category], f_save)
     f_save.close() # 1276549

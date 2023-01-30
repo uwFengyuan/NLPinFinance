@@ -52,6 +52,9 @@ import numpy as np
 from skimage.draw import polygon
 import copy
 
+
+content = 'description'
+
 class COCO:
     def __init__(self, annotation_file=None):
         """
@@ -90,13 +93,13 @@ class COCO:
 
         cats = []
         catToImgs = []
-        if self.dataset['type'] == 'instances':
-            cats = {cat['id']: [] for cat in self.dataset['categories']}
-            for cat in self.dataset['categories']:
-                cats[cat['id']] = cat
-            catToImgs = {cat['id']: [] for cat in self.dataset['categories']}
-            for ann in self.dataset['annotations']:
-                catToImgs[ann['category_id']] += [ann['image_id']]
+        #if self.dataset['type'] == 'instances':
+        #    cats = {cat['id']: [] for cat in self.dataset['categories']}
+        #    for cat in self.dataset['categories']:
+        #        cats[cat['id']] = cat
+        #    catToImgs = {cat['id']: [] for cat in self.dataset['categories']}
+        #    for ann in self.dataset['annotations']:
+        #        catToImgs[ann['category_id']] += [ann['image_id']]
 
         print ('index created!')
 
@@ -220,6 +223,9 @@ class COCO:
             return [self.imgs[id] for id in ids]
         elif type(ids) == int:
             return [self.imgs[ids]]
+        elif type(ids) == str:
+            return [self.imgs[ids]]
+
 
     def showAnns(self, anns):
         """
@@ -266,9 +272,9 @@ class COCO:
         """
         res = COCO()
         res.dataset['images'] = [img for img in self.dataset['images']]
-        res.dataset['info'] = copy.deepcopy(self.dataset['info'])
+        #res.dataset['info'] = copy.deepcopy(self.dataset['info'])
         res.dataset['type'] = copy.deepcopy(self.dataset['type'])
-        res.dataset['licenses'] = copy.deepcopy(self.dataset['licenses'])
+        #res.dataset['licenses'] = copy.deepcopy(self.dataset['licenses'])
 
         print ('Loading and preparing results...     ')
         time_t = datetime.datetime.utcnow()
@@ -277,7 +283,7 @@ class COCO:
         annsImgIds = [ann['image_id'] for ann in anns]
         assert set(annsImgIds) == (set(annsImgIds) & set(self.getImgIds())), \
                'Results do not correspond to current coco set'
-        if 'caption' in anns[0]:
+        if content in anns[0]:
             imgIds = set([img['id'] for img in res.dataset['images']]) & set([ann['image_id'] for ann in anns])
             res.dataset['images'] = [img for img in res.dataset['images'] if img['id'] in imgIds]
             for id, ann in enumerate(anns):
