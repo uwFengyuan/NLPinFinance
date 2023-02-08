@@ -8,8 +8,8 @@ import numpy as np
 import os
 import pickle
 from utils import coco_eval, to_var
-from data_loader import get_loader 
-from adaptive import Encoder2Decoder
+from dataloader_mg import get_loader 
+from adaptive_mg import Encoder2Decoder
 from build_vocab import Vocabulary
 from torch.autograd import Variable 
 from torchvision import transforms
@@ -108,32 +108,42 @@ def main(args):
 
         # Language Modeling Training
         print ('------------------Training for Epoch %d----------------'%( epoch ))
-        for i, (images, captions, lengths, _, _ ) in enumerate( data_loader ):
+        for i, (images, description, captions, lengths_des, lengths_cap, _, _ ) in enumerate( data_loader ):
 
             # Set mini-batch dataset
             images = to_var( images )
+            description = to_var( description )
             captions = to_var( captions )
-            lengths = [ cap_len - 1  for cap_len in lengths ]
-            targets = pack_padded_sequence( captions[:,1:], lengths, batch_first=True )[0]
+            lengths_cap = [ cap_len - 1  for cap_len in lengths_cap ]
+            targets_cap = pack_padded_sequence( captions[:,1:], lengths_cap, batch_first=True ,enforce_sorted=False)[0]
+            
+            lengths_des = [ des_len - 1  for des_len in lengths_des ]
+            targets_des = pack_padded_sequence( description[:,1:], lengths_des, batch_first=True )[0]
 
             # Forward, Backward and Optimize
             adaptive.train()
             adaptive.zero_grad()
 
             start = time.time()
-            packed_scores = adaptive( images, captions, lengths )
+            packed_scores_des, packed_scores_cap = adaptive( images, description, captions, lengths_des, lengths_cap)
             end = time.time()
             if i % 10 == 0:
                 print(f'第{i+1}个batch耗时{end - start}s')
-            #if(end - start) > 5:
-            #    print('出现了一个老鼠屎，跳过')
-            #    continue
+            # if(end - start) > 5:
+                # print('出现了一个老鼠屎，跳过')
+                # continue
             # Compute loss and backprop
-            loss = LMcriterion( packed_scores[0], targets )
+            loss_des = LMcriterion( packed_scores_des[0], targets_des )
+            loss_cap = LMcriterion( packed_scores_cap[0], targets_cap )
+            # loss_des = LMcriterion( packed_scores[0], targets ) 
+            # loss_title = LMcriterion( packed_scores[0], targets ) 
+            loss = loss_cap + loss_des
             loss.backward()
             
             # Gradient clipping for gradient exploding problem in LSTM
-            for p in adaptive.decoder.LSTM.parameters():
+            for p in adaptive.decoder.LSTM1.parameters():
+                p.data.clamp_( -args.clip, args.clip )
+            for p in adaptive.decoder.LSTM2.parameters():
                 p.data.clamp_( -args.clip, args.clip )
             
             optimizer.step()
@@ -156,9 +166,10 @@ def main(args):
         # Save the Adaptive Attention model after each epoch
         torch.save( adaptive.state_dict(), 
                     os.path.join( args.model_path, 
-                    'adaptive-Clothing_Shoes_and_Jewelry%d.pkl'%( epoch ) ) )        # 改成每个种类 
+                    'adaptive-Sports_and_Outdoors(Summarize)%d.pkl'%( epoch ) ) )        # 改成每个种类 
       
         
+
         # Evaluation on validation set        
         cider = coco_eval( adaptive, args, epoch )
         cider_scores.append( cider )        
@@ -182,7 +193,7 @@ def main(args):
             
 if __name__ == '__main__':
     
-    data_source = 'Five_Categories_Data/Sports_and_Outdoors'
+    data_source = 'Five_Categories_Data/Sports_and_Outdoors/tokenized'
     image_source = 'LFYdata'
     parser = argparse.ArgumentParser()
     parser.add_argument( '-f', default='self', help='To make it runnable in jupyter' )
@@ -200,7 +211,7 @@ if __name__ == '__main__':
     parser.add_argument('--caption_val_path', type=str,
                         default='/data/liufengyuan/NLPinFinance/' + data_source + '/annotations/karpathy_split_val.json',
                         help='path for validation annotation json file')
-    parser.add_argument('--log_step', type=int, default=50,
+    parser.add_argument('--log_step', type=int, default=1,
                         help='step size for printing log info')
     parser.add_argument('--seed', type=int, default=123,
                         help='random seed for model reproduction')

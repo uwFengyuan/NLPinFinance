@@ -33,10 +33,10 @@ class COCOEvalCap:
         tokenizer = PTBTokenizer()
         #print(gts)
         gts = tokenizer.tokenize(gts)
-        #print(gts)
-        #print(res)
+        print(gts)
+        # print(res)
         res = tokenizer.tokenize(res)
-        #print(res)
+        print(res)
 
         # =================================================
         # Set up scorers

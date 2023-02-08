@@ -31,10 +31,11 @@ class CocoDataset(data.Dataset):
         self.transform = transform
 
     def __getitem__(self, index):
-        """Returns one data pair ( image, caption, image_id )."""
+        """Returns one data pair ( image, description, caption, image_id )."""
         coco = self.coco
         vocab = self.vocab
         ann_id = self.ids[index]
+        description = coco.anns[ann_id]['description']
         caption = coco.anns[ann_id][content]
         img_id = coco.anns[ann_id]['image_id']
         #print(img_id)
@@ -60,8 +61,15 @@ class CocoDataset(data.Dataset):
         caption.append(vocab('<start>'))
         caption.extend([vocab(token) for token in tokens])
         caption.append(vocab('<end>'))
-        target = torch.Tensor(caption)
-        return image, target, img_id, filename
+        caption = torch.Tensor(caption)
+
+        tokens_2 = str( description ).lower().translate( string.punctuation ).strip().split()
+        description = []
+        description.append(vocab('<start>'))
+        description.extend([vocab(token) for token in tokens_2])
+        description.append(vocab('<end>'))
+        description = torch.Tensor(description)
+        return image, description, caption, img_id, filename
 
     def __len__(self):
         return len( self.ids )
@@ -88,7 +96,7 @@ def collate_fn(data):
 
     # Sort a data list by caption length (descending order).
     data.sort( key=lambda x: len( x[1] ), reverse=True )
-    images, captions, img_ids, filenames = zip( *data ) # unzip
+    images, descriptions, captions, img_ids, filenames = zip( *data ) # unzip
 
     # Merge images (from tuple of 3D tensor to 4D tensor).
     images = torch.stack(images, 0)
@@ -96,13 +104,20 @@ def collate_fn(data):
     filenames = list( filenames )
 
     # Merge captions (from tuple of 1D tensor to 2D tensor).
-    lengths = [len(cap) for cap in captions]
-    targets = torch.zeros(len(captions), max(lengths)).long()
+    lengths_des = [len(des) for des in descriptions]
+    targets_des = torch.zeros(len(descriptions), max(lengths_des)).long()
+    for i, des in enumerate(descriptions):
+        end = lengths_des[i]
+        targets_des[i, :end] = des[:end]  
+
+    lengths_cap = [len(cap) for cap in captions]
+    #lengths_cap = [20 for cap in captions]
+    targets_cap = torch.zeros(len(captions), max(lengths_cap)).long()
     for i, cap in enumerate(captions):
-        end = lengths[i]
-        targets[i, :end] = cap[:end]     
+        end = lengths_cap[i]
+        targets_cap[i, :end] = cap[:end]     
     # print(max(lengths))
-    return images, targets, lengths, img_ids, filenames
+    return images, targets_des, targets_cap, lengths_des, lengths_cap, img_ids, filenames
 
 
 def get_loader(root, json, vocab, transform, batch_size, shuffle, num_workers):

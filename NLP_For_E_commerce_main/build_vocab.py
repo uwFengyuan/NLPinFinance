@@ -5,7 +5,8 @@ from collections import Counter
 from coco import COCO
 import pandas as pd
 
-content = 'description'
+content = 'caption'
+description = 'description'
 
 # One of the changes.                                                                             -----wjy
 # nltk.download('punkt')
@@ -38,9 +39,13 @@ def build_vocab(json, threshold):
     counter = Counter()
     ids = coco.anns.keys()
     for i, id in enumerate(ids):
-        caption = str(coco.anns[id][content])
-        tokens = nltk.tokenize.word_tokenize(caption.lower())
-        counter.update(tokens)
+        caption_tit = str(coco.anns[id][content])
+        tokens_tit = nltk.tokenize.word_tokenize(caption_tit.lower())
+        counter.update(tokens_tit)
+
+        caption_des = str(coco.anns[id][description])
+        tokens_des = nltk.tokenize.word_tokenize(caption_des.lower())
+        counter.update(tokens_des)
 
         if i % 1000 == 0:
             print("[%d/%d] Tokenized the captions." %(i, len(ids)))
@@ -71,7 +76,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    data_source = 'Five_Categories_Data/Sports_and_Outdoors'
+    data_source = 'Five_Categories_Data/Sports_and_Outdoors/tokenized'
     parser = argparse.ArgumentParser()
     parser.add_argument('--caption_path', type=str, 
                         default='/data/liufengyuan/NLPinFinance/' + data_source + '/annotations/karpathy_split_train.json', 

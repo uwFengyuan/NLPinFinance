@@ -134,13 +134,13 @@ def coco_eval( model, args, epoch ):
     for i, (images, image_ids, _ ) in enumerate( eval_data_loader ):
         
         images = to_var( images )
-        generated_captions,_,_ = model.sampler( images )
-
+        generated_captions = model.sampler( images )
+        # print(generated_captions)
         if torch.cuda.is_available():
             captions = generated_captions.cpu().data.numpy()
         else:
             captions = generated_captions.data.numpy()
-        
+        # print(captions.shape[0])
         # Build caption based on Vocabulary and the '<end>' token
         for image_idx in range( captions.shape[0] ):
             
@@ -148,12 +148,13 @@ def coco_eval( model, args, epoch ):
             sampled_caption = []
             
             for word_id in sampled_ids:
-                
+                print(word_id)
                 word = vocab.idx2word[ word_id ]
                 if word == '<end>':
                     break
                 else:
                     sampled_caption.append( word )
+                print(word)
             
             sentence = ' '.join( sampled_caption )
             
@@ -164,7 +165,7 @@ def coco_eval( model, args, epoch ):
         if (i+1) % 10 == 0:
             print ('[%d/%d]'%( (i+1),len( eval_data_loader ) ) )
 
-        if i == 10:
+        if i == 1:
             break
             
             

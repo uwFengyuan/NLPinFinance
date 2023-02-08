@@ -7,9 +7,9 @@ import torch.nn as nn
 import numpy as np
 import os
 import pickle
-from utils import coco_eval, to_var
-from data_loader import get_loader 
-from adaptive import Encoder2Decoder
+from utils_mg import coco_eval, to_var
+from dataloader_mg import get_loader 
+from adaptive_mg import Encoder2Decoder
 from build_vocab import Vocabulary
 from torch.autograd import Variable 
 from torchvision import transforms
@@ -50,7 +50,7 @@ def main(args):
     adaptive = Encoder2Decoder( args.embed_size, len(vocab), args.hidden_size ) # Adaptive: (256, len(vocab), 512)
     
         
-    adaptive.load_state_dict( torch.load( '/home/liufengyuan/NLPinFinance/NLP_For_E_commerce_main/data/models/adaptive-Automotive(description)1.pkl' ) )
+    adaptive.load_state_dict( torch.load( '/home/liufengyuan/NLPinFinance/NLP_For_E_commerce_main/data/models/adaptive-Sports_and_Outdoors(Summarize)1.pkl' ) )
     # Get starting epoch #, note that model is named as '...your path to model/algoname-epoch#.pkl'
     # A little messy here.
 
@@ -81,7 +81,7 @@ def main(args):
             
 if __name__ == '__main__':
     
-    data_source = 'Five_Categories_Data/Automotive'
+    data_source = 'Five_Categories_Data/Sports_and_Outdoors/tokenized'
     image_source = 'LFYdata'
     parser = argparse.ArgumentParser()
     parser.add_argument( '-f', default='self', help='To make it runnable in jupyter' )
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     parser.add_argument( '--batch_size', type=int, default=30) # on cluster setup, 60 each x 4 for Huckle server
     
     # For eval_size > 30, it will cause cuda OOM error on Huckleberry
-    parser.add_argument( '--eval_size', type=int, default=10 ) # on cluster setup, 30 each x 4
+    parser.add_argument( '--eval_size', type=int, default=2 ) # on cluster setup, 30 each x 4
     parser.add_argument( '--num_workers', type=int, default=4 )
     parser.add_argument( '--clip', type=float, default=0.1 )
     parser.add_argument( '--lr_decay', type=int, default=20, help='epoch at which to start lr decay' )

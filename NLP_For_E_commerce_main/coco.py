@@ -53,7 +53,7 @@ from skimage.draw import polygon
 import copy
 
 
-content = 'description'
+content = 'caption'
 
 class COCO:
     def __init__(self, annotation_file=None):
